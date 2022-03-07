@@ -1,11 +1,12 @@
-import 'dart:ui';
-import 'package:app/presentation/test_screen.dart';
-import 'package:gc_core/gc_core.dart';
-import 'package:gc_core/l10n/generated/l10n.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:localization_bloc/localization_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 import '../generated_images.dart';
 import 'components/custom_tabbar.dart';
+import 'package:core/core.dart';
+import 'package:core/l10n/generated/l10n.dart';
 
 class TabbarController extends StatefulWidget {
   const TabbarController({Key? key}) : super(key: key);
@@ -43,7 +44,7 @@ class _TabbarControllerState extends State<TabbarController> {
         navBarEssentials: NavBarEssentials(
             backgroundColor: Colors.white,
             selectedScreenBuildContext: context,
-            navBarHeight: kBottomNavigationBarHeight,
+            navBarHeight: 64,
             selectedIndex: controller.index,
             items: items,
             onItemSelected: (index) {
@@ -54,65 +55,100 @@ class _TabbarControllerState extends State<TabbarController> {
   }
 
   List<Widget> _buildScreens() {
-    return [TestScreen(), Container(), Container(), Container(), Container()];
+    return [const Home(), Container(), Container(), Container()];
   }
 
   List<PersistentBottomNavBarItem> _navBarsItems() {
     const textStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.w400);
     return [
       PersistentBottomNavBarItem(
-          icon: Image.asset(
-            Img.home,
-            color: AppColors.primary,
-          ),
-          title: S.current.home,
+        icon: SvgPicture.asset(
+          Ic.home,
+          color: AppColors.primary,
+        ),
+        title: S.of(context).home,
+        activeColorPrimary: AppColors.primary,
+        inactiveColorPrimary: AppColors.inactiveColor,
+        textStyle: textStyle,
+        inactiveIcon: SvgPicture.asset(
+          Ic.home,
+          color: AppColors.inactiveColor,
+        ),
+      ),
+      PersistentBottomNavBarItem(
+        icon: SvgPicture.asset(
+          Ic.document,
+          color: AppColors.primary,
+        ),
+        title: S.of(context).document,
+        activeColorPrimary: AppColors.primary,
+        inactiveColorPrimary: AppColors.inactiveColor,
+        textStyle: textStyle,
+        inactiveIcon: SvgPicture.asset(
+          Ic.document,
+          color: AppColors.inactiveColor,
+        ),
+      ),
+      PersistentBottomNavBarItem(
+        icon: SvgPicture.asset(
+          Ic.notification,
+          color: AppColors.primary,
+        ),
+        title: S.of(context).notification,
+        activeColorPrimary: AppColors.primary,
+        inactiveColorPrimary: AppColors.inactiveColor,
+        textStyle: textStyle,
+        inactiveIcon: SvgPicture.asset(
+          Ic.notification,
+          color: AppColors.inactiveColor,
+        ),
+      ),
+      PersistentBottomNavBarItem(
+          icon: SvgPicture.asset(Ic.user, color: AppColors.primary),
+          title: S.of(context).profile,
           activeColorPrimary: AppColors.primary,
           inactiveColorPrimary: AppColors.inactiveColor,
           textStyle: textStyle,
-          inactiveIcon: Image.asset(Img.home)),
-      PersistentBottomNavBarItem(
-          icon: Image.asset(
-            Img.vaccine,
-            color: AppColors.primary,
-          ),
-          title: S.current.family,
-          activeColorPrimary: AppColors.primary,
-          inactiveColorPrimary: AppColors.inactiveColor,
-          textStyle: textStyle,
-          inactiveIcon: Image.asset(
-            Img.vaccine,
-          )),
-      PersistentBottomNavBarItem(
-          onPressed: (context) {
-            var context =
-                getIt.get<NavigationService>().navigatorKey.currentContext!;
-            // TODO: do something
-            return null;
-          },
-          icon: Image.asset(
-            Img.filter,
-          ),
-          iconSize: 0),
-      PersistentBottomNavBarItem(
-          icon: Image.asset(
-            Img.chat,
-            color: AppColors.primary,
-          ),
-          title: S.current.support,
-          activeColorPrimary: AppColors.primary,
-          inactiveColorPrimary: AppColors.inactiveColor,
-          textStyle: textStyle,
-          inactiveIcon: Image.asset(Img.chat)),
-      PersistentBottomNavBarItem(
-          icon: Image.asset(
-            Img.profile,
-            color: AppColors.primary,
-          ),
-          title: S.current.profile,
-          activeColorPrimary: AppColors.primary,
-          inactiveColorPrimary: AppColors.inactiveColor,
-          textStyle: textStyle,
-          inactiveIcon: Image.asset(Img.profile)),
+          inactiveIcon:
+              SvgPicture.asset(Ic.user, color: AppColors.inactiveColor)),
     ];
+  }
+
+  void showMenuBottomSheet(BuildContext context) async {
+    var qrcode = await getIt
+        .get<NavigationService>()
+        .goTo(deeplink: DeeplinkConstant.qrCameraScreen);
+    if (qrcode is String) {
+      var data = qrcode.split('|');
+      if (data.isNotEmpty && data[0] == 'people' || data[0] == 'patient') {
+        await getIt
+            .get<NavigationService>()
+            .goTo(deeplink: DeeplinkConstant.addPatients, arguments: data);
+      } else {
+        Popup.showError(context, message: 'Mã QRCode không đúng định dạng.');
+      }
+    }
+  }
+}
+
+class Home extends StatelessWidget {
+  const Home({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ButtonContainer(
+          text: Text(S.of(context).submit_btn),
+          press: () {
+            var language = context.read<LocalizationBloc>().state.langauge;
+            context.read<LocalizationBloc>().add(SwitchLanguageEvent(
+                language: language == Language.vi ? Language.en : Language.vi));
+          },
+        )
+      ],
+    );
   }
 }

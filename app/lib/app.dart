@@ -1,38 +1,32 @@
-import 'package:gc_core/gc_core.dart';
+import 'package:core/l10n/generated/l10n.dart' as core_l10;
+import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:gc_authenication/l10n/generated/l10n.dart' as authenication;
-import 'package:gc_core/l10n/generated/l10n.dart' as core;
 import 'package:get_it/get_it.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:sizer/sizer.dart';
-import 'generate_route.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'generated_routes.dart';
 import 'presentation/components/loadmore.dart';
+import 'presentation/initial_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:localization_bloc/localization_bloc.dart';
 
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     Iterable<LocalizationsDelegate<dynamic>> localizations = [
-      authenication.S.delegate,
-      core.S.delegate,
       GlobalMaterialLocalizations.delegate,
       GlobalWidgetsLocalizations.delegate,
       GlobalCupertinoLocalizations.delegate,
+      core_l10.S.delegate,
     ];
-    Iterable<Locale> locales = const [
-      Locale('en', 'US'),
-      Locale('vi', 'VN'),
-    ];
-    var locale = const Locale('vi', 'VN');
-    SystemChrome.setSystemUIOverlayStyle(
-        const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+
     return RefreshConfiguration(
-        headerBuilder: () => const WaterDropHeader(
-              waterDropColor: Colors.black,
+        headerBuilder: () => WaterDropHeader(
+              complete: Container(),
+              waterDropColor: AppColors.primary,
             ),
         // Configure the default header indicator. If you have the same header indicator for each page, you need to set this
         footerBuilder: () => CustomFooter(builder: (context, status) {
@@ -55,20 +49,46 @@ class App extends StatelessWidget {
         hideFooterWhenNotFull: false,
         // Disable pull-up to load more functionality when Viewport is less than one screen
         enableBallisticLoad: true,
-        // trigger load more by BallisticScrollActivity
         child: Sizer(builder: (context, orientation, deviceType) {
-          return MaterialApp(
-              navigatorKey: GetIt.instance<NavigationService>().navigatorKey,
-              initialRoute: '/',
-              onGenerateRoute: generateRoute,
-              theme: CoreAppTheme.of(context),
-              localizationsDelegates: localizations,
-              supportedLocales: locales,
-              locale: locale,
-              builder: (context, child) => MediaQuery(
+          return BlocBuilder<LocalizationBloc, LocalizationState>(
+              buildWhen: (previous, current) =>
+                  previous.langauge != current.langauge,
+              builder: (context, state) {
+                core_l10.S.load(state.currentLocale);
+                return MaterialApp(
+                  localizationsDelegates: localizations,
+                  supportedLocales: state.locales,
+                  locale: state.currentLocale,
+                  theme: CoreAppTheme.of(context),
+                  home: Stack(
+                    children: [
+                      MaterialApp(
+                        navigatorObservers: [
+                          GetIt.instance<NavigationService>()
+                        ],
+                        navigatorKey:
+                            GetIt.instance<NavigationService>().navigatorKey,
+                        initialRoute: '/',
+                        onGenerateRoute: generatedRoutes,
+                        theme: CoreAppTheme.of(context),
+                        localizationsDelegates: localizations,
+                        supportedLocales: state.locales,
+                        locale: state.currentLocale,
+                        builder: (context, child) => MediaQuery(
+                            data: MediaQuery.of(context)
+                                .copyWith(textScaleFactor: 1.0),
+                            child: child ?? Container()),
+                      ),
+                      const Positioned.fill(child: LoaderOverlayScreen()),
+                      const Positioned.fill(child: InitialScreen()),
+                    ],
+                  ),
+                  builder: (context, child) => MediaQuery(
                     data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
                     child: child ?? Container(),
-                  ));
+                  ),
+                );
+              });
         }));
   }
 }

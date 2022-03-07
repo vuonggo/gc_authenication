@@ -1,56 +1,55 @@
-import 'dart:async';
-
-import 'package:gc_core/gc_core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_cpnetworking_service/flutter_cpnetworking_service.dart';
+import 'package:core/core.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
-import 'package:authenication_bloc/authenication_bloc.dart' as authenblocs;
+import 'dart:io';
+import 'package:localization_bloc/localization_bloc.dart' as localization_bloc;
 
 Future<void> initDIApplication() async {
+  HttpOverrides.global = MyHttpOverrides();
   buildCoreDI();
+  // Listener Authenication
+  Loader.appLoader.hasAuthenication.addListener(() async =>
+      _authenicationListener(Loader.appLoader.hasAuthenication.value));
+
   var storageTokenProcessor = await DefaultStorageTokenProcessor.create();
+
   // Access token is expired
   var session = storageTokenProcessor.getCurrentSessionInfo();
-  var expiresIn = session?.others['expiresIn']?.toString();
-  if (expiresIn != null) {
-    var expiresInDate =
-        DateTime.fromMillisecondsSinceEpoch(int.parse(expiresIn));
-    var currentDate = DateTime.now();
-    if (currentDate.isAfter(expiresInDate)) {
-      await storageTokenProcessor.removeAllSessionInfos();
-    }
+  if ((session?.accessToken.isNotEmpty ?? false) &&
+      _tokenIsExpired(session!.accessToken)) {
+    await storageTokenProcessor.removeAllSessionInfos();
   }
-  // Register app default domain
   getIt.registerLazySingleton<DefaultStorageTokenProcessor>(
       () => storageTokenProcessor);
-  var portalDomain = DefaultNetworkConfigurable(
+  var appDomain = DefaultNetworkConfigurable(
     interceptor: InterceptorsWrapper(
         onRequest: _onRequest, onError: _onError, onResponse: _onResponse),
-    baseURL: Env.portalDomain,
+    baseURL: Env.appDomain,
     headers: {
-      'accept': 'application/json, text/plain, */*',
-      'authority': 'galaxycare.dev.nuclent.com',
+      'Content-Type': 'application/json',
     },
     encoding: 'application/json; charset=UTF-8',
   );
   if (session?.accessToken.isNotEmpty ?? false) {
-    portalDomain.headers = {
-      ...portalDomain.headers,
-      'Authorization': 'Bearer ${session!.accessToken}'
+    appDomain.headers = {
+      ...appDomain.headers,
+      'token': session!.accessToken,
+    };
+  }
+  if (session?.accessToken.isNotEmpty ?? false) {
+    appDomain.headers = {
+      ...appDomain.headers,
+      'Authorization': session!.accessToken
     };
   }
 
-  // Blocs
-  authenblocs.buildDI(
-      storageTokenProcessor: storageTokenProcessor,
-      networkConfigurable: portalDomain);
+  localization_bloc.buildDI();
 
-  //Others
   getIt.registerLazySingleton<PersistentTabController>(
       () => PersistentTabController(initialIndex: 0));
 }
 
-// Interceptor
 void _onRequest(RequestOptions options, RequestInterceptorHandler handler) {
   handler.next(options);
 }
@@ -59,7 +58,7 @@ void _onError(DioError err, ErrorInterceptorHandler handler) {
   var message = err.response?.data?['message'];
   // token expries
   if (message is String && message.contains('token')) {
-    // TODO: logout
+    _logout();
     handler.reject(err);
   } else {
     handler.next(err);
@@ -69,4 +68,34 @@ void _onError(DioError err, ErrorInterceptorHandler handler) {
 void _onResponse(
     Response<dynamic> response, ResponseInterceptorHandler handler) {
   handler.next(response);
+}
+
+Future<void> _logout() async {
+  await getIt.get<DefaultStorageTokenProcessor>().removeAllSessionInfos();
+}
+
+void _authenicationListener(bool hasLogin) async {
+  if (hasLogin == false) {
+    await _logout();
+  }
+}
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          ((X509Certificate cert, String host, int port) {
+        return true;
+      });
+  }
+}
+
+bool _tokenIsExpired(String token) {
+  return true;
+  // var payload = Jwt.parseJwt(token);
+  // var exp = payload['exp'] as num;
+  // var expired = DateTime.parse(exp.toString()).toUtc().toLocal();
+  // var current = DateTime.now();
+  // return expired.isBefore(current);
 }

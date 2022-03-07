@@ -1,6 +1,7 @@
-import 'package:gc_core/gc_core.dart';
+import 'package:core/l10n/generated/l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:core/core.dart';
 
 class LoadMoreFooter extends StatelessWidget {
   final LoadStatus? status;
@@ -11,31 +12,34 @@ class LoadMoreFooter extends StatelessWidget {
     if (status == LoadStatus.failed) {
       return Container(
           alignment: Alignment.center,
-          child: const GradientText(
+          child: GradientText(
               widget: Text(
-            'Tải thất bại',
-            style: const TextStyle(color: Colors.white),
+            S.of(context).loadFailed,
+            style: CoreAppTheme.of(context).textTheme.bodyText2?.copyWith(
+                color: AppColors.neutral200, fontWeight: FontWeight.normal),
           )));
     }
     if (status == LoadStatus.loading || status == LoadStatus.idle) {
       return Container(
+        height: 50,
         alignment: Alignment.center,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            SizedBox(
-              width: 30,
-              height: 30,
+          children: <Widget>[
+            const SizedBox(
+              width: 20,
+              height: 20,
               child: CircularProgressIndicator(
-                color: AppColors.primary,
+                color: AppColors.neutral200,
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
               child: GradientText(
                   widget: Text(
-                'Đang tải xuống...',
-                style: TextStyle(color: Colors.white),
+                S.of(context).loadMore,
+                style: CoreAppTheme.of(context).textTheme.bodyText2?.copyWith(
+                    color: AppColors.neutral200, fontWeight: FontWeight.normal),
               )),
             ),
           ],
@@ -45,10 +49,12 @@ class LoadMoreFooter extends StatelessWidget {
     if (status == LoadStatus.noMore) {
       return Container(
           alignment: Alignment.center,
-          child: const GradientText(
+          height: 50,
+          child: GradientText(
               widget: Text(
-            'Không còn dữ liệu!',
-            style: const TextStyle(color: Colors.white),
+            S.of(context).noMoreData,
+            style: CoreAppTheme.of(context).textTheme.bodyText2?.copyWith(
+                color: AppColors.neutral200, fontWeight: FontWeight.normal),
           )));
     }
 

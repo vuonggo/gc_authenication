@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "993432471673",
+    "project_id": "pnvn-7f907",
+    "storage_bucket": "pnvn-7f907.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993432471673:android:2be64b74556b60e844aca8",
+        "android_client_info": {
+          "package_name": "com.galaxyone.pnvn.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "993432471673-25s90s8t2e0eal2ift0e1m0mgot7b7dt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBY5PScsqNeYlC75H168kODkvXYNe5Y0Uw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "993432471673-25s90s8t2e0eal2ift0e1m0mgot7b7dt.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "993432471673-llr7ucc2c91rbv5r8aatlv5bbm27mc2t.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.galaxyone.pnvn.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

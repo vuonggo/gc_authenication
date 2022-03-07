@@ -1,3 +1,10 @@
+class Ic {
+  static const document = 'assets/icons/document.svg';
+  static const home = 'assets/icons/home.svg';
+  static const notification = 'assets/icons/notification.svg';
+  static const user = 'assets/icons/user.svg';
+}
+
 class Img {
   static const chat = 'assets/images/Chat.png';
   static const chatSelected = 'assets/images/Chat_selected.png';
@@ -13,4 +20,6 @@ class Img {
   static const homeBanner = 'assets/images/home_banner.png';
   static const patientList = 'assets/images/patient_list.png';
   static const test = 'assets/images/test.png';
+  static const wifi = 'assets/images/wifi.png';
 }
+

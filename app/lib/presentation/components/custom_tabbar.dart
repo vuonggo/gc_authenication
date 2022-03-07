@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:core/core.dart';
 import 'package:persistent_bottom_nav_bar/persistent-tab-view.dart';
 
 class CustomTabbar extends StatefulWidget {
@@ -26,6 +27,12 @@ class _CustomTabbarState extends State<CustomTabbar> {
   void initState() {
     super.initState();
     selectedIndex = widget.navBarEssentials?.selectedIndex ?? 0;
+    var controller = getIt.get<PersistentTabController>();
+    controller.addListener(() {
+      setState(() {
+        selectedIndex = controller.index;
+      });
+    });
   }
 
   Widget _buildItem(BuildContext context, PersistentBottomNavBarItem item,
@@ -113,10 +120,9 @@ class _CustomTabbarState extends State<CustomTabbar> {
                 Transform.translate(
                   offset: const Offset(0, -10),
                   child: Center(
-                    child: Container(
+                    child: SizedBox(
                       width: 150.0,
                       height: height,
-                      margin: const EdgeInsets.only(top: 2.0),
                       child: Container(
                         alignment: Alignment.center,
                         height: height,
@@ -182,7 +188,6 @@ class _CustomTabbarState extends State<CustomTabbar> {
 
   @override
   Widget build(BuildContext context) {
-    final midIndex = (widget.navBarEssentials!.items!.length / 2).floor();
     return SafeArea(
       top: false,
       right: false,
@@ -225,47 +230,20 @@ class _CustomTabbarState extends State<CustomTabbar> {
                                   widget.navBarEssentials!
                                       .selectedScreenBuildContext);
                             } else {
-                              setState(() {
-                                selectedIndex = index;
-                              });
                               widget.navBarEssentials!.onItemSelected!(index);
                             }
                           },
-                          child: index == midIndex
-                              ? Container(width: 150, color: Colors.transparent)
-                              : _buildItem(
-                                  context,
-                                  item,
-                                  selectedIndex == index,
-                                  widget.navBarEssentials!.navBarHeight),
+                          child: _buildItem(
+                              context,
+                              item,
+                              selectedIndex == index,
+                              widget.navBarEssentials!.navBarHeight),
                         ),
                       );
                     }).toList(),
                   ),
                 ),
               ),
-              widget.navBarEssentials!.navBarHeight == 0
-                  ? const SizedBox.shrink()
-                  : Center(
-                      child: GestureDetector(
-                          onTap: () {
-                            if (widget.navBarEssentials!.items![midIndex]
-                                    .onPressed !=
-                                null) {
-                              widget.navBarEssentials!.items![midIndex]
-                                      .onPressed!(
-                                  widget.navBarEssentials!
-                                      .selectedScreenBuildContext);
-                            } else {
-                              widget
-                                  .navBarEssentials!.onItemSelected!(midIndex);
-                            }
-                          },
-                          child: _buildMiddleItem(
-                              widget.navBarEssentials!.items![midIndex],
-                              selectedIndex == midIndex,
-                              widget.navBarEssentials!.navBarHeight)),
-                    )
             ],
           ),
         ),
